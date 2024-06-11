@@ -1,51 +1,65 @@
-package main
+package sort
 
-import "math"
+import (
+	"strings"
+	"unicode/utf8"
 
-// Función auxiliar para obtener el dígito en la posición especificada
-// Ej 1: getDigit(123, 0) -> 3
-// Ej 2: getDigit(123, 1) -> 2
-// Ej 3: getDigit(123, 2) -> 1
-func getDigit(num, pos int) int {
-	return (num / int(math.Pow10(pos))) % 10
+	"github.com/untref-ayp2/data-structures/dictionary"
+	"github.com/untref-ayp2/data-structures/list"
+)
+
+const abecedario = "*.0123456789abcdefghijklmnñopqrstuvwxyz"
+
+func RadixSort(arr []string) {
+	if len(arr) < 2 {
+		return
+	}
+	buckets := dictionary.NewDictionary[string, list.LinkedList[string]]()
+	initBuckets(buckets)
+	length := maxLen(arr)
+	for i := length - 1; i >= 0; i-- {
+		fillBuckets(arr, buckets, i)
+		emptyBuckets(arr, buckets)
+	}
 }
 
-// RadixSort ordena un arreglo de enteros utilizando el algoritmo
-// de ordenamiento RadixSort.
-func RadixSort(arr []int) {
-	// Obtenemos el máximo valor del arreglo para determinar el número de dígitos
-	max := arr[0]
-	for _, num := range arr {
-		if num > max {
-			max = num
+func initBuckets(b *dictionary.Dictionary[string, list.LinkedList[string]]) {
+	for _, key := range abecedario {
+		b.Put(string(key), *list.NewLinkedList[string]())
+	}
+}
+
+func fillBuckets(arr []string, b *dictionary.Dictionary[string, list.LinkedList[string]], pos int) {
+	for _, value := range arr {
+		key := "*"
+		if pos < utf8.RuneCountInString(value) {
+			key = strings.ToLower(string([]rune(value)[pos]))
+		}
+		list, _ := b.Get(key)
+		list.Append(value)
+		b.Put(key, list)
+	}
+}
+
+func emptyBuckets(arr []string, b *dictionary.Dictionary[string, list.LinkedList[string]]) {
+	index := 0
+	for _, key := range abecedario {
+		list, _ := b.Get(string(key))
+		for !list.IsEmpty() {
+			arr[index] = list.Head().Data()
+			list.RemoveFirst()
+			index++
+		}
+		b.Put(string(key), list)
+	}
+}
+
+func maxLen(arr []string) int {
+	max := utf8.RuneCountInString(arr[0])
+	for _, value := range arr {
+		if utf8.RuneCountInString(value) > max {
+			max = utf8.RuneCountInString(value)
 		}
 	}
-
-	// Determinamos la cantidad de dígitos necesarios
-	digits := int(math.Log10(float64(max))) + 1
-
-	// Realizamos el ordenamiento por cada dígito
-	for i := 0; i < digits; i++ {
-		// Creamos las "bandejas" para cada dígito
-		buckets := make([][]int, 10)
-		for j := 0; j < 10; j++ {
-			buckets[j] = make([]int, 0)
-		}
-
-		// Distribuimos los números en las urnas según el dígito actual
-		for _, num := range arr {
-			digit := getDigit(num, i)
-			buckets[digit] = append(buckets[digit], num)
-		}
-
-		// Copiamos los números de las urnas al arreglo original
-		idx := 0
-		for j := 0; j < 10; j++ {
-			for _, num := range buckets[j] {
-				arr[idx] = num
-				idx++
-			}
-			buckets[j] = nil
-		}
-	}
+	return max
 }

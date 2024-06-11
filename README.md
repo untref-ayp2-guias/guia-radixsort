@@ -1,7 +1,8 @@
-# Guía 17
+# Guía RadixSort + BucketSort
 
 En las siguientes carpetas se encuentran las implementaciones del código suministrado en las clases:
 
+- `/radixsort-old`, implementación simple de Radix Sort
 - `/bucketsort`, implementación de ordenamiento por urnas
 - `/radixsort`, implementación de Radix Sort
 
